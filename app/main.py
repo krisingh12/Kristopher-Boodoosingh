@@ -2,13 +2,13 @@ import logging
 from contextlib import asynccontextmanager
 
 import uvicorn
-from fastapi import FastAPI, Request, status
+from fastapi import FastAPI, HTTPException, Request, status
 from starlette.middleware import Middleware
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import RedirectResponse
+from starlette.responses import JSONResponse, RedirectResponse
 
 from app.config import get_settings
-from app.routers import api_router, router, static_files, templates
+from app.routers import api_router, game_rental_router, router, static_files, templates
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +31,7 @@ app = FastAPI(
 
 app.include_router(router)
 app.include_router(api_router)
+app.include_router(game_rental_router)
 app.mount("/static", static_files, name="static")
 
 
@@ -60,7 +61,15 @@ async def health():
 
 
 @app.exception_handler(status.HTTP_401_UNAUTHORIZED)
-async def unauthorized_redirect_handler(request: Request, exc: Exception):
+async def unauthorized_redirect_handler(request: Request, exc: HTTPException):
+    if request.url.path.startswith(
+        ("/api/", "/listings", "/rentals", "/payment", "/games")
+    ):
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={"detail": exc.detail},
+            headers=exc.headers,
+        )
     return templates.TemplateResponse(
         request=request,
         name="401.html",

@@ -8,6 +8,7 @@ FastStarter is a small FastAPI web application with server-rendered pages, authe
 - JWT authentication stored in HTTP-only cookies
 - SQLite for local development and PostgreSQL for deployment
 - Separate regular-user and admin areas
+- Game rental JSON API for accounts, games, listings, rentals, and payments
 - Responsive HTML templates with shared static CSS and JavaScript
 - Unit and integration tests with pytest
 
@@ -77,6 +78,17 @@ python manage.py run
 ```
 
 Open [http://127.0.0.1:5000](http://127.0.0.1:5000) in a browser.
+
+### Game rental API
+
+The JSON API exposes `POST /signup` and `POST /auth`, public `GET /listings`
+with an optional `platform` filter (`NSW`, `PS5`, `XBOX`, or `PC`), customer
+listing creation and sale, and staff game, payment, and rental operations.
+Authenticate with the token returned by `/auth` using
+`Authorization: Bearer <access_token>`. Signup creates a customer account.
+Staff payment requests include both `amount` and `customer_id`; the rental
+return request associates its payment with the rental and makes the listing
+available again.
 
 Useful commands:
 

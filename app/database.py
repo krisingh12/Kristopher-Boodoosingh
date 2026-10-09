@@ -3,8 +3,9 @@ import threading
 import time
 from contextlib import contextmanager
 
+from sqlalchemy import inspect, text
 from sqlalchemy.exc import DBAPIError, OperationalError, ProgrammingError
-from sqlmodel import SQLModel, Session, create_engine
+from sqlmodel import Session, SQLModel, create_engine
 
 from app.config import get_settings
 
@@ -37,6 +38,15 @@ def create_db_and_tables() -> None:
     import app.models  # noqa: F401
 
     SQLModel.metadata.create_all(engine)
+    user_columns = {column["name"] for column in inspect(engine).get_columns("user")}
+    if "status" not in user_columns:
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "ALTER TABLE user ADD COLUMN status "
+                    "VARCHAR NOT NULL DEFAULT 'Active'"
+                )
+            )
 
 
 def drop_all() -> None:
